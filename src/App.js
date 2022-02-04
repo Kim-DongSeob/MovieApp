@@ -1,59 +1,42 @@
 import {useEffect, useState} from "react";
+import Movie from "./Movie";
 
 function App() {
   const [loading, setLoading] = useState(true);
-  const [coins, setCoins] = useState([]);
-  const [price, setPrice] = useState(0);
-  const [input, setInput] = useState("");
-  const [select, setSelect] = useState("");
+  const [movies, setMovies] = useState([])
 
+  const getMovies = async () => {
+    const json = await (
+      await fetch(
+        `https://yts.mx/api/v2/list_movies.json?minimum_rating=8.8&sort_by=year`
+      )
+    ).json()
+    setMovies(json.data.movies);
+    setLoading(false);
+  };
   useEffect(() => {
-    const fetchCoins = async () => {
-      const res = await fetch("https://api.coinpaprika.com/v1/tickers");
-      const json = await res.json()
-
-      setCoins(json)
-      setLoading(false)
-    };
-    fetchCoins();
+    getMovies();
   }, [])
-
-  const handleChangeInput = (event) => {
-    setInput(event.target.value);
-  }
-  const handleKeyUp = (event) => {
-    if (event.keyCode === 13) {
-      const res = input / select;
-      setPrice(res)
-    }
-  }
-  const handleChangeSelect = (e) => {
-    setSelect(e.target.value);
-  }
-
 
   return (
     <div>
-      <h1>The Coins! {loading ? "" : `(${coins.length})`}</h1>
-      <div>
-        <input onChange={handleChangeInput} onKeyUp={handleKeyUp}/>
-      </div>
-      <div>
-        <h2>얼만큼 살 수 있게~? : {price} </h2>
-      </div>
       {loading ? (
-        <strong>Loading...</strong>
+        <h1>loading...</h1>
       ) : (
-        <select onChange={handleChangeSelect}>
-          {coins.map((coin) => (
-            <option value={coin.quotes.USD.price}>
-              {coin.name} ({coin.symbol}): ${coin.quotes.USD.price} USD
-            </option>
+        <div>
+          {movies.map((movie) => (
+            <Movie
+              key={movie.id}
+              coverImg={movie.medium_cover_image}
+              title={movie.title}
+              summary={movie.summary}
+              genres={movie.genres}
+            />
           ))}
-        </select>
+        </div>
       )}
     </div>
-  );
+  )
 }
 
 export default App;
